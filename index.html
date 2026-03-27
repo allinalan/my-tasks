@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>All In Alan — Tasks</title>
+<title>All In Alan â Tasks</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -535,15 +535,15 @@
     <div class="header-title">ALL IN ALAN</div>
     <span style="font-size:12px;color:var(--text-muted);font-family:'DM Sans',sans-serif;">Task Command Center</span>
   </div>
-  <button class="add-btn" onclick="openAddModal()">＋ Add Task</button>
+  <button class="add-btn" onclick="openAddModal()">ï¼ Add Task</button>
 </div>
 <!-- PILLARS NAV -->
 <div class="pillars-nav">
   <button class="pillar-tab active" data-pillar="all" onclick="filterPillar('all', this)">All</button>
-  <button class="pillar-tab" data-pillar="Personal" onclick="filterPillar('Personal', this)">🏠 Personal</button>
-  <button class="pillar-tab" data-pillar="Cutco" onclick="filterPillar('Cutco', this)">🔪 Cutco</button>
-  <button class="pillar-tab" data-pillar="Sharp Ninja Academy" onclick="filterPillar('Sharp Ninja Academy', this)">🎓 SNA</button>
-  <button class="pillar-tab" data-pillar="Coordinator" onclick="filterPillar('Coordinator', this)">📋 Coordinator</button>
+  <button class="pillar-tab" data-pillar="Personal" onclick="filterPillar('Personal', this)">ð  Personal</button>
+  <button class="pillar-tab" data-pillar="Cutco" onclick="filterPillar('Cutco', this)">ðª Cutco</button>
+  <button class="pillar-tab" data-pillar="Sharp Ninja Academy" onclick="filterPillar('Sharp Ninja Academy', this)">ð SNA</button>
+  <button class="pillar-tab" data-pillar="Coordinator" onclick="filterPillar('Coordinator', this)">ð Coordinator</button>
 </div>
 <!-- STATS BAR -->
 <div class="stats-bar">
@@ -579,7 +579,7 @@
       <label>Task Name</label>
       <div class="voice-input-row">
         <input type="text" id="taskName" placeholder="What needs to be done?" />
-        <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()" title="Voice input">🎙</button>
+        <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()" title="Voice input">ð</button>
       </div>
     </div>
     <div class="form-row">
@@ -737,7 +737,7 @@ async function syncToSheet() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'syncAll', tasks })
     });
-    showSync('Synced ✓');
+    showSync('Synced â');
   } catch(e) { saveLocal(); }
 }
 async function loadFromSheet() {
@@ -756,7 +756,7 @@ function renderTasks() {
   document.getElementById('countCompleted').textContent = tasks.filter(t => t.status === 'Completed').length;
   document.getElementById('countCritical').textContent = tasks.filter(t => t.urgency === 'Critical').length;
   if (filtered.length === 0) {
-    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No tasks yet. Tap + to add one.</div></div>`;
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">ð</div><div class="empty-text">No tasks yet. Tap + to add one.</div></div>`;
     return;
   }
   const sorted = [...filtered].sort((a, b) => {
@@ -791,11 +791,11 @@ function taskCard(t) {
       </div>
       <div class="task-meta">
         ${t.subcategory ? `<span class="chip chip-subcategory">${t.subcategory}</span>` : ''}
-        ${t.assignee ? `<span class="chip chip-assignee">👤 ${t.assignee}</span>` : ''}
-        ${t.urgency ? `<span class="${urgencyClass}">⚡ ${t.urgency}</span>` : ''}
+        ${t.assignee ? `<span class="chip chip-assignee">ð¤ ${t.assignee}</span>` : ''}
+        ${t.urgency ? `<span class="${urgencyClass}">â¡ ${t.urgency}</span>` : ''}
         ${t.status ? `<span class="${statusClass}">${t.status}</span>` : ''}
-        ${dueFormatted ? `<span class="chip chip-due">📅 ${dueFormatted}</span>` : ''}
-        ${t.recurring && t.frequency ? `<span class="chip chip-recurring">🔁 ${t.frequency}</span>` : ''}
+        ${dueFormatted ? `<span class="chip chip-due">ð ${dueFormatted}</span>` : ''}
+        ${t.recurring && t.frequency ? `<span class="chip chip-recurring">ð ${t.frequency}</span>` : ''}
       </div>
       ${t.notes ? `<div class="task-notes">${t.notes}</div>` : ''}
     </div>`;
@@ -833,7 +833,7 @@ function toggleVoice() {
     recognition.stop();
     recognition = null;
     btn.classList.remove('listening');
-    btn.textContent = '🎙';
+    btn.textContent = 'ð';
     return;
   }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -842,7 +842,7 @@ function toggleVoice() {
   recognition.interimResults = true;
   recognition.lang = 'en-US';
   btn.classList.add('listening');
-  btn.textContent = '⏹';
+  btn.textContent = 'â¹';
   recognition.onresult = (e) => {
     let transcript = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -852,12 +852,12 @@ function toggleVoice() {
   };
   recognition.onend = () => {
     btn.classList.remove('listening');
-    btn.textContent = '🎙';
+    btn.textContent = 'ð';
     recognition = null;
   };
   recognition.onerror = () => {
     btn.classList.remove('listening');
-    btn.textContent = '🎙';
+    btn.textContent = 'ð';
     recognition = null;
   };
   recognition.start();
@@ -917,12 +917,12 @@ function openDetail(id) {
   if (t.status === 'In Progress') document.getElementById('statusOptIP').className = 'status-opt active-in-progress';
   if (t.status === 'Completed') document.getElementById('statusOptC').className = 'status-opt active-completed';
   const items = [
-    ['Pillar', t.pillar || '—'],
-    ['Subcategory', t.subcategory || '—'],
-    ['Assignee', t.assignee || '—'],
-    ['Created By', t.createdBy || '—'],
-    ['Due Date', t.dueDate ? formatDate(t.dueDate) : '—'],
-    ['Urgency', t.urgency || '—'],
+    ['Pillar', t.pillar || 'â'],
+    ['Subcategory', t.subcategory || 'â'],
+    ['Assignee', t.assignee || 'â'],
+    ['Created By', t.createdBy || 'â'],
+    ['Due Date', t.dueDate ? formatDate(t.dueDate) : 'â'],
+    ['Urgency', t.urgency || 'â'],
     ['Recurring', t.recurring ? (t.frequency || 'Yes') : 'No'],
     ['Created', new Date(t.createdAt).toLocaleDateString()],
   ];
@@ -964,9 +964,38 @@ function deleteTask() {
   renderTasks();
   syncToSheet();
 }
+
+// ============================================================
+// AUTO-REFRESH POLLING (every 30 seconds)
+// ============================================================
+let pollInterval = null;
+async function pollForUpdates() {
+  if (!APPS_SCRIPT_URL) return;
+  try {
+    const res = await fetch(APPS_SCRIPT_URL + '?action=getAll');
+    const data = await res.json();
+    if (JSON.stringify(data) !== JSON.stringify(tasks)) {
+      tasks = data;
+      renderTasks();
+      showSync('Updated \u2713');
+    }
+  } catch(e) { /* silent fail on poll */ }
+}
+function startPolling() {
+  pollInterval = setInterval(pollForUpdates, 30000);
+}
+function stopPolling() {
+  if (pollInterval) clearInterval(pollInterval);
+}
+// Pause polling when tab is hidden, resume when visible
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { stopPolling(); }
+  else { pollForUpdates(); startPolling(); }
+});
 async function init() {
   await loadFromSheet();
   renderTasks();
+  startPolling();
   setTimeout(() => {
     document.getElementById('loadingScreen').style.opacity = '0';
     setTimeout(() => document.getElementById('loadingScreen').style.display = 'none', 300);
