@@ -745,7 +745,7 @@ async function loadFromSheet() {
   try {
     const res = await fetch(APPS_SCRIPT_URL + '?action=getAll');
     const data = await res.json();
-    tasks = data;
+    tasks = data.map(function(t) { t.id = String(t.id); return t; });
   } catch(e) { tasks = loadLocal(); }
 }
 function renderTasks() {
@@ -975,7 +975,7 @@ async function pollForUpdates() {
     const res = await fetch(APPS_SCRIPT_URL + '?action=getAll');
     const data = await res.json();
     if (JSON.stringify(data) !== JSON.stringify(tasks)) {
-      tasks = data;
+      tasks = data.map(function(t) { t.id = String(t.id); return t; });
       renderTasks();
       showSync('Updated \u2713');
     }
