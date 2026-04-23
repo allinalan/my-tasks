@@ -802,7 +802,13 @@ function taskCard(t) {
 }
 function formatDate(d) {
   if (!d) return '';
-  const date = new Date(d + 'T12:00:00');
+  var str = String(d).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    var date = new Date(str + 'T12:00:00');
+  } else {
+    var date = new Date(str);
+  }
+  if (isNaN(date.getTime())) return str;
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 function filterPillar(pillar, el) {
@@ -924,7 +930,7 @@ function openDetail(id) {
     ['Due Date', t.dueDate ? formatDate(t.dueDate) : '&#x2014;'],
     ['Urgency', t.urgency || '&#x2014;'],
     ['Recurring', t.recurring ? (t.frequency || 'Yes') : 'No'],
-    ['Created', new Date(t.createdAt).toLocaleDateString()],
+    ['Created', t.createdAt ? formatDate(t.createdAt) : '&#x2014;'],
   ];
   document.getElementById('detailGrid').innerHTML = items.map(([l, v]) =>
     `<div class="detail-item"><div class="detail-item-label">${l}</div><div class="detail-item-value">${v}</div></div>`
