@@ -391,10 +391,28 @@
     margin-bottom: 16px;
   }
   .detail-item { background: var(--surface2); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .detail-item.editable { cursor: pointer; position: relative; }
+  .detail-item.editable:active { background: #24243a; }
+  .detail-item.editable .detail-item-value::after { content: ' \270E'; font-size: 11px; color: var(--text-muted); }
   .detail-item-label { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
   .detail-item-value { font-size: 13px; font-weight: 500; }
+  .detail-edit-input {
+    width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--accent);
+    border-radius: 6px; padding: 6px 8px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+    outline: none; margin-top: 4px;
+  }
+  .detail-edit-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(240,192,64,0.2); }
   .detail-notes { background: var(--surface2); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 16px; }
+  .detail-notes.editable { cursor: pointer; }
+  .detail-notes.editable .detail-notes-text::after { content: ' \270E'; font-size: 11px; color: var(--text-muted); }
   .detail-notes-text { font-size: 13px; color: var(--text-muted); line-height: 1.5; font-style: italic; }
+  .detail-edit-textarea {
+    width: 100%; background: var(--bg); color: var(--text); border: 1px solid var(--accent);
+    border-radius: 6px; padding: 6px 8px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+    outline: none; margin-top: 4px; min-height: 60px; resize: vertical;
+  }
+  .detail-title.editable { cursor: pointer; }
+  .detail-title.editable::after { content: ' \270E'; font-size: 14px; color: var(--text-muted); }
   .status-select-row { display: flex; gap: 8px; margin-bottom: 16px; }
   .status-opt {
     flex: 1;
@@ -680,7 +698,7 @@
 <div class="modal-overlay" id="detailModal">
   <div class="detail-modal">
     <div class="modal-handle"></div>
-    <div class="detail-title" id="detailTitle"></div>
+    <div class="detail-title editable" id="detailTitle" onclick="editField('name')"></div>
     <div class="status-select-row">
       <div class="status-opt" onclick="updateStatus('Not Started')" id="statusOptNS">Not Started</div>
       <div class="status-opt" onclick="updateStatus('In Progress')" id="statusOptIP">In Progress</div>
@@ -923,25 +941,26 @@ function openDetail(id) {
   if (t.status === 'In Progress') document.getElementById('statusOptIP').className = 'status-opt active-in-progress';
   if (t.status === 'Completed') document.getElementById('statusOptC').className = 'status-opt active-completed';
   const items = [
-    ['Pillar', t.pillar || '&#x2014;'],
-    ['Subcategory', t.subcategory || '&#x2014;'],
-    ['Assignee', t.assignee || '&#x2014;'],
-    ['Created By', t.createdBy || '&#x2014;'],
-    ['Due Date', t.dueDate ? formatDate(t.dueDate) : '&#x2014;'],
-    ['Urgency', t.urgency || '&#x2014;'],
-    ['Recurring', t.recurring ? (t.frequency || 'Yes') : 'No'],
-    ['Created', t.createdAt ? formatDate(t.createdAt) : '&#x2014;'],
+    ['Pillar', t.pillar || '&#x2014;', false],
+    ['Subcategory', t.subcategory || '&#x2014;', false],
+    ['Assignee', t.assignee || '&#x2014;', 'assignee'],
+    ['Created By', t.createdBy || '&#x2014;', false],
+    ['Due Date', t.dueDate ? formatDate(t.dueDate) : '&#x2014;', 'dueDate'],
+    ['Urgency', t.urgency || '&#x2014;', false],
+    ['Recurring', t.recurring ? (t.frequency || 'Yes') : 'No', false],
+    ['Created', t.createdAt ? formatDate(t.createdAt) : '&#x2014;', false],
   ];
-  document.getElementById('detailGrid').innerHTML = items.map(([l, v]) =>
-    `<div class="detail-item"><div class="detail-item-label">${l}</div><div class="detail-item-value">${v}</div></div>`
+  document.getElementById('detailGrid').innerHTML = items.map(([l, v, field]) =>
+    field
+      ? `<div class="detail-item editable" onclick="editField('${field}')"><div class="detail-item-label">${l}</div><div class="detail-item-value">${v}</div></div>`
+      : `<div class="detail-item"><div class="detail-item-label">${l}</div><div class="detail-item-value">${v}</div></div>`
   ).join('');
-  const notesBox = document.getElementById('detailNotesBox');
-  if (t.notes) {
-    document.getElementById('detailNotes').textContent = t.notes;
-    notesBox.style.display = 'block';
-  } else {
-    notesBox.style.display = 'none';
-  }
+  var notesVal = t.notes || '';
+  var notesBox = document.getElementById('detailNotesBox');
+  document.getElementById('detailNotes').textContent = notesVal || 'Tap to add notes';
+  notesBox.style.display = 'block';
+  notesBox.className = 'detail-notes editable';
+  notesBox.onclick = function() { editField('notes'); };
   document.getElementById('detailModal').classList.add('open');
 }
 function closeDetailModal() {
@@ -971,6 +990,100 @@ function deleteTask() {
   syncToSheet();
 }
 
+// ============================================================
+// EDIT FIELDS IN DETAIL VIEW
+// ============================================================
+function editField(field) {
+  if (!selectedTaskId) return;
+  var task = tasks.find(function(t) { return t.id === selectedTaskId; });
+  if (!task) return;
+
+  if (field === 'name') {
+    var el = document.getElementById('detailTitle');
+    if (el.querySelector('input')) return;
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'detail-edit-input';
+    input.value = task.name || '';
+    input.style.fontFamily = "'Bebas Neue', sans-serif";
+    input.style.fontSize = '22px';
+    input.style.letterSpacing = '1px';
+    el.textContent = '';
+    el.appendChild(input);
+    input.focus();
+    input.onblur = function() { saveField('name', input.value); };
+    input.onkeydown = function(e) { if (e.key === 'Enter') input.blur(); };
+  }
+  else if (field === 'assignee') {
+    var items = document.querySelectorAll('.detail-item.editable');
+    var container = null;
+    items.forEach(function(item) {
+      if (item.querySelector('.detail-item-label') && item.querySelector('.detail-item-label').textContent.trim() === 'ASSIGNEE') {
+        container = item;
+      }
+    });
+    if (!container || container.querySelector('select')) return;
+    var valDiv = container.querySelector('.detail-item-value');
+    var sel = document.createElement('select');
+    sel.className = 'detail-edit-input';
+    var opts = ['', 'All in Alan', 'Mads', 'Mac'];
+    opts.forEach(function(o) {
+      var option = document.createElement('option');
+      option.value = o;
+      option.textContent = o || 'Select assignee';
+      if (o === (task.assignee || '')) option.selected = true;
+      sel.appendChild(option);
+    });
+    valDiv.textContent = '';
+    valDiv.appendChild(sel);
+    sel.focus();
+    sel.onblur = function() { saveField('assignee', sel.value); };
+    sel.onchange = function() { saveField('assignee', sel.value); };
+  }
+  else if (field === 'dueDate') {
+    var items = document.querySelectorAll('.detail-item.editable');
+    var container = null;
+    items.forEach(function(item) {
+      if (item.querySelector('.detail-item-label') && item.querySelector('.detail-item-label').textContent.trim() === 'DUE DATE') {
+        container = item;
+      }
+    });
+    if (!container || container.querySelector('input')) return;
+    var valDiv = container.querySelector('.detail-item-value');
+    var input = document.createElement('input');
+    input.type = 'date';
+    input.className = 'detail-edit-input';
+    input.value = task.dueDate || '';
+    valDiv.textContent = '';
+    valDiv.appendChild(input);
+    input.focus();
+    input.onblur = function() { saveField('dueDate', input.value); };
+    input.onchange = function() { saveField('dueDate', input.value); };
+  }
+  else if (field === 'notes') {
+    var notesBox = document.getElementById('detailNotesBox');
+    var notesText = document.getElementById('detailNotes');
+    if (notesBox.querySelector('textarea')) return;
+    var ta = document.createElement('textarea');
+    ta.className = 'detail-edit-textarea';
+    ta.value = task.notes || '';
+    ta.placeholder = 'Add notes...';
+    notesText.textContent = '';
+    notesText.appendChild(ta);
+    ta.focus();
+    notesBox.onclick = null;
+    ta.onblur = function() { saveField('notes', ta.value); };
+  }
+}
+function saveField(field, value) {
+  if (!selectedTaskId) return;
+  var task = tasks.find(function(t) { return t.id === selectedTaskId; });
+  if (!task) return;
+  task[field] = value;
+  renderTasks();
+  syncToSheet();
+  openDetail(selectedTaskId);
+}
 // ============================================================
 // AUTO-REFRESH POLLING (every 30 seconds)
 // ============================================================
